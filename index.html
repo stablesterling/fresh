@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Free Music WebApp</title>
+    <style>
+        body { font-family: sans-serif; background: #121212; color: white; text-align: center; }
+        input { padding: 10px; width: 60%; border-radius: 5px; border: none; }
+        .song-card { display: flex; align-items: center; background: #1e1e1e; margin: 10px auto; padding: 10px; width: 80%; cursor: pointer; border-radius: 8px; }
+        .song-card img { width: 50px; height: 50px; margin-right: 15px; border-radius: 4px; }
+        iframe { width: 90%; max-width: 560px; height: 315px; margin-top: 20px; border-radius: 12px; }
+    </style>
+</head>
+<body>
+
+    <h1>🎵 Music Player</h1>
+    <input type="text" id="query" placeholder="Search for a song or artist..." onkeypress="if(event.key === 'Enter') searchSongs()">
+    
+    <div id="player-container">
+        <iframe id="main-player" src="" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen style="display:none;"></iframe>
+    </div>
+
+    <div id="results"></div>
+
+    <script>
+        // REPLACE THIS with your Render URL after hosting!
+        const BACKEND_URL = "https://your-app-name.onrender.com";
+
+        async function searchSongs() {
+            const q = document.getElementById('query').value;
+            const res = await fetch(`${BACKEND_URL}/search?q=${q}`);
+            const songs = await res.json();
+            
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = "";
+
+            songs.forEach(song => {
+                const div = document.createElement('div');
+                div.className = 'song-card';
+                div.innerHTML = `<img src="${song.thumbnail}"> <div><b>${song.title}</b><br><small>${song.artist}</small></div>`;
+                div.onclick = () => playSong(song.videoId);
+                resultsDiv.appendChild(div);
+            });
+        }
+
+        function playSong(id) {
+            const player = document.getElementById('main-player');
+            // Using the "nocookie" domain to prevent login errors
+            player.src = `https://www.youtube-nocookie.com/embed/${id}?autoplay=1`;
+            player.style.display = "block";
+            window.scrollTo(0, 0);
+        }
+    </script>
+</body>
+</html>
