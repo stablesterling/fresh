@@ -3,53 +3,183 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Free Music WebApp</title>
+    <title>StreamFree Music</title>
     <style>
-        body { font-family: sans-serif; background: #121212; color: white; text-align: center; }
-        input { padding: 10px; width: 60%; border-radius: 5px; border: none; }
-        .song-card { display: flex; align-items: center; background: #1e1e1e; margin: 10px auto; padding: 10px; width: 80%; cursor: pointer; border-radius: 8px; }
-        .song-card img { width: 50px; height: 50px; margin-right: 15px; border-radius: 4px; }
-        iframe { width: 90%; max-width: 560px; height: 315px; margin-top: 20px; border-radius: 12px; }
+        :root {
+            --bg: #0f0f0f;
+            --card: #1e1e1e;
+            --accent: #1db954; /* Spotify-style green */
+            --text: #ffffff;
+        }
+        body { 
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; 
+            background: var(--bg); 
+            color: var(--text); 
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .header { margin-bottom: 20px; }
+        .search-box {
+            width: 100%;
+            max-width: 500px;
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+        }
+        input { 
+            flex: 1;
+            padding: 12px 15px; 
+            border-radius: 25px; 
+            border: 1px solid #333; 
+            background: #222;
+            color: white;
+            outline: none;
+        }
+        input:focus { border-color: var(--accent); }
+        
+        button {
+            padding: 10px 20px;
+            border-radius: 25px;
+            border: none;
+            background: var(--accent);
+            color: black;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        #player-container {
+            width: 100%;
+            max-width: 600px;
+            margin-bottom: 30px;
+            display: none; /* Hidden until a song is picked */
+        }
+        
+        iframe { 
+            width: 100%; 
+            aspect-ratio: 16 / 9;
+            border-radius: 12px; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        #results { 
+            width: 100%; 
+            max-width: 600px; 
+        }
+
+        .song-card { 
+            display: flex; 
+            align-items: center; 
+            background: var(--card); 
+            margin-bottom: 12px; 
+            padding: 12px; 
+            cursor: pointer; 
+            border-radius: 10px; 
+            transition: transform 0.2s, background 0.2s;
+        }
+        .song-card:hover { 
+            background: #2a2a2a; 
+            transform: scale(1.02);
+        }
+        .song-card img { 
+            width: 55px; 
+            height: 55px; 
+            margin-right: 15px; 
+            border-radius: 6px; 
+            object-fit: cover;
+        }
+        .song-info b { display: block; margin-bottom: 4px; font-size: 1rem; }
+        .song-info small { color: #aaa; }
+
+        .loader {
+            display: none;
+            margin: 20px;
+            border: 4px solid #333;
+            border-top: 4px solid var(--accent);
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
 
-    <h1>🎵 Music Player</h1>
-    <input type="text" id="query" placeholder="Search for a song or artist..." onkeypress="if(event.key === 'Enter') searchSongs()">
-    
-    <div id="player-container">
-        <iframe id="main-player" src="" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen style="display:none;"></iframe>
+    <div class="header">
+        <h1>🎵 StreamFree</h1>
     </div>
 
+    <div class="search-box">
+        <input type="text" id="query" placeholder="Search song, artist, or album..." onkeypress="if(event.key === 'Enter') searchSongs()">
+        <button onclick="searchSongs()">Search</button>
+    </div>
+
+    <div id="player-container">
+        <iframe id="main-player" src="" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+    </div>
+
+    <div class="loader" id="loader"></div>
     <div id="results"></div>
 
     <script>
-        // REPLACE THIS with your Render URL after hosting!
-        const BACKEND_URL = "https://your-app-name.onrender.com";
+        // Your specific Render Backend URL
+        const BACKEND_URL = "https://render-godc.onrender.com";
 
         async function searchSongs() {
             const q = document.getElementById('query').value;
-            const res = await fetch(`${BACKEND_URL}/search?q=${q}`);
-            const songs = await res.json();
-            
+            if(!q) return;
+
             const resultsDiv = document.getElementById('results');
+            const loader = document.getElementById('loader');
+            
+            // Show loader, clear old results
+            loader.style.display = "block";
             resultsDiv.innerHTML = "";
 
-            songs.forEach(song => {
-                const div = document.createElement('div');
-                div.className = 'song-card';
-                div.innerHTML = `<img src="${song.thumbnail}"> <div><b>${song.title}</b><br><small>${song.artist}</small></div>`;
-                div.onclick = () => playSong(song.videoId);
-                resultsDiv.appendChild(div);
-            });
+            try {
+                const res = await fetch(`${BACKEND_URL}/search?q=${encodeURIComponent(q)}`);
+                const songs = await res.json();
+                
+                loader.style.display = "none";
+
+                if(songs.length === 0) {
+                    resultsDiv.innerHTML = "<p>No songs found. Try a different search.</p>";
+                    return;
+                }
+
+                songs.forEach(song => {
+                    const div = document.createElement('div');
+                    div.className = 'song-card';
+                    div.innerHTML = `
+                        <img src="${song.thumbnail}" alt="cover"> 
+                        <div class="song-info">
+                            <b>${song.title}</b>
+                            <small>${song.artist}</small>
+                        </div>
+                    `;
+                    div.onclick = () => playSong(song.videoId);
+                    resultsDiv.appendChild(div);
+                });
+            } catch (error) {
+                loader.style.display = "none";
+                resultsDiv.innerHTML = "<p style='color:red;'>Error connecting to backend. Render might be waking up... please wait 30 seconds and try again.</p>";
+                console.error("Fetch error:", error);
+            }
         }
 
         function playSong(id) {
+            const container = document.getElementById('player-container');
             const player = document.getElementById('main-player');
-            // Using the "nocookie" domain to prevent login errors
-            player.src = `https://www.youtube-nocookie.com/embed/${id}?autoplay=1`;
-            player.style.display = "block";
-            window.scrollTo(0, 0);
+            
+            // Using the "youtube-nocookie" domain to bypass login/cookie blocks
+            player.src = `https://www.youtube-nocookie.com/embed/${id}?autoplay=1&modestbranding=1`;
+            container.style.display = "block";
+            
+            // Scroll to player smoothly
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
     </script>
 </body>
