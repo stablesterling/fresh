@@ -10,7 +10,7 @@ from sqlalchemy.orm import sessionmaker, Session
 from ytmusicapi import YTMusic
 from pytubefix import YouTube
 
-# --- DATABASE CONFIG (SQLite) ---
+# --- DATABASE CONFIG ---
 DATABASE_URL = "sqlite:///./vofo.db"
 engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
@@ -60,15 +60,10 @@ def get_db():
 async def register(data: dict, db: Session = Depends(get_db)):
     if not data.get('username') or not data.get('password'):
         raise HTTPException(400, "Fields required")
-    
     if db.query(User).filter(User.username == data['username']).first():
         raise HTTPException(400, "User exists")
-    
-    hashed_pwd = hash_password(data['password'])
-    user = User(username=data['username'], password=hashed_pwd)
-    db.add(user)
-    db.commit()
-    return {"success": True}
+    user = User(username=data['username'], password=hash_password(data['password']))
+    db.add(user); db.commit(); return {"success": True}
 
 @app.post("/api/auth/login")
 async def login(data: dict, db: Session = Depends(get_db)):
@@ -95,9 +90,14 @@ async def search(q: str):
 @app.get("/api/stream")
 async def stream(id: str):
     try:
-        url = YouTube(f"https://youtube.com/watch?v={id}").streams.filter(only_audio=True).first().url
-        return {"url": url}
-    except: raise HTTPException(500, "Streaming failed")
+        # Use a YouTube object with specific settings to avoid bot detection
+        yt_obj = YouTube(f"https://www.youtube.com/watch?v={id}")
+        # Try to get the highest quality audio stream
+        stream_url = yt_obj.streams.filter(only_audio=True).get_audio_only().url
+        return {"url": stream_url}
+    except Exception as e:
+        print(f"Streaming Error: {e}")
+        raise HTTPException(status_code=500, detail="YouTube blocked this request")
 
 @app.post("/api/like")
 async def toggle_like(data: dict, db: Session = Depends(get_db)):
