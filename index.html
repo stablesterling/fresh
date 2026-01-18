@@ -3,53 +3,77 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VoFo Music Player</title>
+    <title>VoFo Music</title>
     <style>
-        body { background: #0d0d0d; color: #e5e5e5; font-family: sans-serif; padding: 20px; }
-        .track { display: flex; align-items: center; gap: 15px; padding: 10px; border-bottom: 1px solid #222; cursor: pointer; }
-        .track:hover { background: #1a1a1a; }
+        body { background: #0d0d0d; color: #e5e5e5; font-family: sans-serif; padding: 20px; padding-bottom: 120px; }
+        .track { display: flex; align-items: center; gap: 15px; padding: 12px; border-bottom: 1px solid #222; cursor: pointer; }
         .track img { width: 50px; height: 50px; border-radius: 4px; }
-        #player-bar { position: fixed; bottom: 0; left: 0; width: 100%; background: #000; padding: 15px; border-top: 1px solid #c5a367; display: none; }
+        #player-bar { position: fixed; bottom: 0; left: 0; width: 100%; background: #050505; padding: 15px; border-top: 2px solid #c5a367; display: none; z-index: 1000; }
+        input { padding: 10px; width: 70%; background: #222; border: 1px solid #444; color: white; border-radius: 4px; }
+        button { padding: 10px 20px; background: #c5a367; border: none; font-weight: bold; border-radius: 4px; }
     </style>
 </head>
 <body>
 
     <h2>VoFo Music</h2>
-    <input id="q" type="text" placeholder="Search music...">
-    <button onclick="doSearch()">Search</button>
+    <div style="margin-bottom: 20px;">
+        <input id="q" type="text" placeholder="Search song or artist...">
+        <button onclick="doSearch()">Search</button>
+    </div>
+    
     <div id="results"></div>
 
     <div id="player-bar">
-        <span id="pTitle">Select a song</span>
-        <audio id="audioPlayer" controls autoplay style="width: 100%; margin-top: 10px;"></audio>
+        <div id="pTitle" style="font-weight: bold; color: #c5a367; margin-bottom: 10px;"></div>
+        <audio id="audioPlayer" controls style="width: 100%;"></audio>
     </div>
 
     <script>
         async function doSearch() {
             const q = document.getElementById('q').value;
-            const res = await fetch(`/api/search?q=${q}`);
+            const res = await fetch(`/api/search?q=${encodeURIComponent(q)}`);
             const data = await res.json();
             const list = document.getElementById('results');
             list.innerHTML = data.map(s => `
-                <div class="track" onclick="playTrack('${s.id}', '${s.title}')">
+                <div class="track" onclick="playTrack('${s.id}', '${s.title.replace(/'/g, "\\'")}', '${s.artist.replace(/'/g, "\\'")}', '${s.thumbnail}')">
                     <img src="${s.thumbnail}">
-                    <div>${s.title}</div>
+                    <div>
+                        <div style="font-weight:bold">${s.title}</div>
+                        <div style="font-size:12px; color:#888">${s.artist}</div>
+                    </div>
                 </div>
             `).join('');
         }
 
-        async function playTrack(id, title) {
+        async function playTrack(id, title, artist, thumb) {
             document.getElementById('player-bar').style.display = 'block';
-            document.getElementById('pTitle').innerText = "Loading: " + title;
+            document.getElementById('pTitle').innerText = "Connecting...";
             
-            const res = await fetch(`/api/stream?id=${id}`);
-            const data = await res.json();
-            
-            if(data.url) {
-                const player = document.getElementById('audioPlayer');
-                player.src = data.url;
-                player.play();
-                document.getElementById('pTitle').innerText = "Playing: " + title;
+            try {
+                const res = await fetch(`/api/stream?id=${id}`);
+                const data = await res.json();
+                
+                if(data.url) {
+                    const audio = document.getElementById('audioPlayer');
+                    audio.src = data.url;
+                    audio.play();
+                    document.getElementById('pTitle').innerText = title + " - " + artist;
+
+                    // MEDIA SESSION API (Allows background play & lock screen controls)
+                    if ('mediaSession' in navigator) {
+                        navigator.mediaSession.metadata = new MediaMetadata({
+                            title: title,
+                            artist: artist,
+                            artwork: [{ src: thumb, sizes: '512x512', type: 'image/jpeg' }]
+                        });
+                        navigator.mediaSession.setActionHandler('play', () => audio.play());
+                        navigator.mediaSession.setActionHandler('pause', () => audio.pause());
+                    }
+                } else {
+                    alert("Error: " + (data.error || "Could not fetch stream"));
+                }
+            } catch (err) {
+                alert("Server Connection Failed");
             }
         }
     </script>
