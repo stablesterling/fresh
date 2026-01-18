@@ -3,12 +3,17 @@ from fastapi.responses import HTMLResponse
 from fastapi.middleware.cors import CORSMiddleware
 from ytmusicapi import YTMusic
 from pytubefix import YouTube
+import os
 
 app = FastAPI()
 yt = YTMusic()
 
-# Allow frontend to communicate with backend
-app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
+app.add_middleware(
+    CORSMiddleware, 
+    allow_origins=["*"], 
+    allow_methods=["*"], 
+    allow_headers=["*"]
+)
 
 @app.get("/api/trending")
 async def trending():
@@ -29,19 +34,34 @@ async def search(q: str):
 @app.get("/api/stream")
 async def get_stream(id: str):
     try:
-        # Fetches the direct URL to the audio file on YouTube's servers
-        yt_video = YouTube(f"https://www.youtube.com/watch?v={id}")
-        audio_stream = yt_video.streams.filter(only_audio=True).first()
+        url = f"https://www.youtube.com/watch?v={id}"
+        
+        # KEY FIX: Using OAuth and 'ANDROID' client to bypass Render IP blocks
+        yt_video = YouTube(
+            url, 
+            use_oauth=True, 
+            allow_oauth_cache=True,
+            client='ANDROID' 
+        )
+        
+        # Filter for m4a for best mobile background compatibility
+        audio_stream = yt_video.streams.filter(only_audio=True, file_extension='m4a').first()
+        
         if audio_stream:
+            # We return the direct URL which remains valid for a few hours
             return {"url": audio_stream.url}
+            
         raise HTTPException(status_code=404, detail="Audio stream not found")
     except Exception as e:
+        print(f"Streaming Error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/", response_class=HTMLResponse)
 def home():
-    with open("index.html", "r", encoding="utf-8") as f:
-        return f.read()
+    if os.path.exists("index.html"):
+        with open("index.html", "r", encoding="utf-8") as f:
+            return f.read()
+    return "index.html not found"
 
 if __name__ == "__main__":
     import uvicorn
