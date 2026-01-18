@@ -10,12 +10,9 @@ from passlib.context import CryptContext
 from ytmusicapi import YTMusic
 from pytubefix import YouTube
 
-# --- DATABASE CONFIG ---
-DATABASE_URL = os.environ.get("DATABASE_URL", "postgresql://vofodb_user:Y7MQfAWwEtsiHQLiGHFV7ikOI2ruTv3u@dpg-d5lm4ongi27c7390kq40-a/vofodb")
-if DATABASE_URL.startswith("postgres://"):
-    DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
-
-engine = create_engine(DATABASE_URL, pool_pre_ping=True)
+# --- DATABASE CONFIG (SQLite) ---
+DATABASE_URL = "sqlite:///./vofo.db"
+engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -41,40 +38,35 @@ Base.metadata.create_all(bind=engine)
 app = FastAPI()
 yt = YTMusic()
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
 
 def get_db():
     db = SessionLocal()
     try: yield db
     finally: db.close()
 
-# --- ROUTES ---
+# --- AUTH ---
 @app.post("/api/auth/register")
 async def register(data: dict, db: Session = Depends(get_db)):
-    try:
-        user = User(username=data['username'], password=pwd_context.hash(data['password']))
-        db.add(user)
-        db.commit()
-        return {"success": True}
-    except:
-        raise HTTPException(400, "Identity already exists")
+    if db.query(User).filter(User.username == data['username']).first():
+        raise HTTPException(400, "User exists")
+    user = User(username=data['username'], password=pwd_context.hash(data['password']))
+    db.add(user); db.commit(); return {"success": True}
 
 @app.post("/api/auth/login")
 async def login(data: dict, db: Session = Depends(get_db)):
     user = db.query(User).filter(User.username == data['username']).first()
     if not user or not pwd_context.verify(data['password'], user.password):
-        raise HTTPException(401, "Invalid credentials")
+        raise HTTPException(401, "Invalid")
     return {"success": True, "user_id": user.id, "username": user.username}
 
+# --- MUSIC ---
 @app.get("/api/trending")
 async def trending():
-    songs = yt.get_charts(country="IN")['songs']['items']
-    return [{"id": s['videoId'], "title": s['title'], "artist": s['artists'][0]['name'], "thumbnail": s['thumbnails'][-1]['url']} for s in songs[:15]]
+    try:
+        songs = yt.get_charts(country="IN")['songs']['items']
+        return [{"id": s['videoId'], "title": s['title'], "artist": s['artists'][0]['name'], "thumbnail": s['thumbnails'][-1]['url']} for s in songs[:15]]
+    except: return []
 
 @app.get("/api/search")
 async def search(q: str):
@@ -83,14 +75,16 @@ async def search(q: str):
 
 @app.get("/api/stream")
 async def stream(id: str):
-    url = YouTube(f"https://youtube.com/watch?v={id}").streams.filter(only_audio=True).first().url
-    return {"url": url}
+    try:
+        url = YouTube(f"https://youtube.com/watch?v={id}").streams.filter(only_audio=True).first().url
+        return {"url": url}
+    except: raise HTTPException(500)
 
 @app.post("/api/like")
 async def toggle_like(data: dict, db: Session = Depends(get_db)):
-    existing = db.query(LikedSong).filter(LikedSong.user_id == data['user_id'], LikedSong.song_id == data['id']).first()
-    if existing:
-        db.delete(existing); db.commit(); return {"status": "unliked"}
+    exist = db.query(LikedSong).filter(LikedSong.user_id == data['user_id'], LikedSong.song_id == data['id']).first()
+    if exist:
+        db.delete(exist); db.commit(); return {"status": "unliked"}
     db.add(LikedSong(user_id=data['user_id'], song_id=data['id'], title=data['title'], artist=data['artist'], thumbnail=data['thumbnail']))
     db.commit(); return {"status": "liked"}
 
@@ -101,4 +95,8 @@ async def library(user_id: int, db: Session = Depends(get_db)):
 
 @app.get("/", response_class=HTMLResponse)
 async def home():
-    with open("index.html", "r") as f: return f.read()
+    with open("index.html", "r", encoding="utf-8") as f: return f.read()
+
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 8000))
+    uvicorn.run(app, host="0.0.0.0", port=port)
