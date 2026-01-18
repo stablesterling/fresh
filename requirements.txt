@@ -3,4 +3,4 @@ uvicorn
 ytmusicapi
 pytubefix
 sqlalchemy
-passlib[bcrypt]
+bcrypt
