@@ -42,12 +42,10 @@ async def logout(response: Response):
 
 @app.get("/api/trending")
 async def trending():
-    # Fetches trending songs from YT Music charts
     try:
         songs = yt.get_charts(country="IN")['songs']['items']
         return [{"id": s['videoId'], "title": s['title'], "artist": s['artists'][0]['name'], "thumbnail": s['thumbnails'][-1]['url']} for s in songs[:15]]
-    except:
-        return []
+    except: return []
 
 @app.get("/api/search")
 async def search(q: str):
