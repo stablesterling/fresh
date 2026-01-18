@@ -10,8 +10,14 @@ yt = YTMusic()
 # Mock Database
 db = {"users": {}, "sessions": {}, "likes": {}}
 
-app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
+# --- AUTH ---
 @app.post("/api/auth/register")
 async def register(data: dict):
     u, p = data.get("username"), data.get("password")
@@ -26,7 +32,7 @@ async def login(data: dict, response: Response):
     if db["users"].get(u) == p:
         sid = str(uuid.uuid4())
         db["sessions"][sid] = u
-        response.set_cookie(key="sid", value=sid, httponly=True)
+        response.set_cookie(key="sid", value=sid, httponly=True, samesite="lax")
         return {"success": True}
     return {"success": False, "error": "Invalid Encryption"}
 
@@ -41,6 +47,7 @@ async def logout(response: Response):
     response.delete_cookie("sid")
     return {"success": True}
 
+# --- SEARCH & LIBRARY ---
 @app.get("/api/search")
 async def search(q: str):
     results = yt.search(q, filter="songs")
@@ -53,8 +60,11 @@ async def toggle_like(request: Request, song: dict):
     if not user: raise HTTPException(status_code=401)
     user_likes = db["likes"][user]
     existing = next((s for s in user_likes if s['id'] == song['id']), None)
-    if existing: user_likes.remove(existing); return {"status": "unliked"}
-    user_likes.append(song); return {"status": "liked"}
+    if existing: 
+        user_likes.remove(existing)
+        return {"status": "unliked"}
+    user_likes.append(song)
+    return {"status": "liked"}
 
 @app.get("/api/library")
 async def get_library(request: Request):
@@ -62,7 +72,12 @@ async def get_library(request: Request):
     user = db["sessions"].get(sid)
     return db["likes"].get(user, [])
 
+# --- SERVE FRONTEND ---
 @app.get("/", response_class=HTMLResponse)
 def home():
     with open("index.html", "r", encoding="utf-8") as f:
         return f.read()
+
+@app.get("/favicon.ico", include_in_schema=False)
+async def favicon():
+    return Response(content="", status_code=204)
