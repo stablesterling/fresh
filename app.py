@@ -14,7 +14,8 @@ app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], all
 @app.post("/api/auth/register")
 async def register(data: dict):
     u, p = data.get("username"), data.get("password")
-    if not u or u in db["users"]: return {"success": False, "error": "Identity exists"}
+    if not u or not p: return {"success": False, "error": "Identity/Encryption required"}
+    if u in db["users"]: return {"success": False, "error": "Identity exists"}
     db["users"][u] = p
     db["likes"][u] = []
     return {"success": True}
@@ -22,7 +23,7 @@ async def register(data: dict):
 @app.post("/api/auth/login")
 async def login(data: dict, response: Response):
     u, p = data.get("username"), data.get("password")
-    if db["users"].get(u) == p:
+    if u in db["users"] and db["users"][u] == p:
         sid = str(uuid.uuid4())
         db["sessions"][sid] = u
         response.set_cookie(key="sid", value=sid, httponly=True, samesite="lax")
