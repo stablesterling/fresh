@@ -3,154 +3,105 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>VoFo Music | High-Fidelity</title>
-    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <title>VoFo Music | Performance Test</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500&family=Montserrat:wght@300;400;600&display=swap" rel="stylesheet">
     <style>
-        :root { --bg: #0d0d0d; --gold: #c5a367; --soft: #e5e5e5; --muted: #666666; --serif: 'Cormorant Garamond', serif; --sans: 'Montserrat', sans-serif; --red: #ff4b2b; }
+        :root { --bg: #0d0d0d; --gold: #c5a367; --soft: #e5e5e5; --muted: #666666; --serif: 'Cormorant Garamond', serif; --sans: 'Montserrat', sans-serif; }
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { background: var(--bg); color: var(--soft); font-family: var(--sans); min-height: 100vh; overflow-x: hidden; }
+        body { background: var(--bg); color: var(--soft); font-family: var(--sans); min-height: 100vh; }
         .hidden { display: none !important; }
         
-        .vofo-logo { font-family: var(--serif); font-size: clamp(3rem, 10vw, 6rem); font-weight: 500; color: var(--gold); letter-spacing: 8px; margin: 10px 0; text-transform: uppercase; text-align: center; }
+        /* Layout */
+        nav { display: flex; justify-content: center; padding: 20px; border-bottom: 1px solid #1a1a1a; position: sticky; top: 0; background: var(--bg); z-index: 100; }
+        .vofo-logo { font-family: var(--serif); font-size: 2.5rem; color: var(--gold); letter-spacing: 5px; text-transform: uppercase; text-align: center; margin: 20px 0; }
         
-        /* Auth Screen */
-        .auth-container { position: fixed; inset: 0; background: var(--bg); z-index: 5000; display: flex; justify-content: center; align-items: center; padding: 20px; }
-        .auth-card { background: #111; padding: 40px; border-radius: 4px; width: 100%; max-width: 380px; text-align: center; border: 1px solid #1a1a1a; }
-        .auth-card input { width: 100%; padding: 14px; margin-bottom: 12px; background: #000; border: 1px solid #222; color: white; outline: none; }
-        .auth-btn { width: 100%; padding: 16px; background: var(--gold); border: none; font-weight: 600; cursor: pointer; color: #000; letter-spacing: 2px; text-transform: uppercase; }
+        .hero { display: flex; flex-direction: column; align-items: center; padding: 20px; }
+        .search-box { width: 100%; max-width: 500px; margin-bottom: 30px; display: flex; gap: 10px; }
+        .search-box input { flex: 1; padding: 15px; background: #111; border: 1px solid #222; color: white; outline: none; border-radius: 4px; }
+        .search-btn { padding: 0 20px; background: var(--gold); border: none; font-weight: 600; cursor: pointer; border-radius: 4px; }
 
-        /* Navigation */
-        nav { display: flex; justify-content: space-between; align-items: center; padding: 20px 40px; border-bottom: 1px solid rgba(255,255,255,0.03); position: sticky; top: 0; background: var(--bg); z-index: 100; }
-        .nav-links span { font-size: 11px; letter-spacing: 2px; cursor: pointer; color: var(--muted); margin-left: 20px; text-transform: uppercase; }
-        .nav-links span.active { color: var(--gold); }
-        
-        /* Sections */
-        .hero { display: flex; flex-direction: column; align-items: center; padding: 40px 20px; min-height: 80vh; }
-        .search-box { width: 100%; max-width: 500px; margin: 20px 0 40px; display: flex; flex-direction: column; gap: 15px; }
-        .search-box input { width: 100%; padding: 18px; text-align: center; background: transparent; border: 1px solid #222; color: white; font-family: var(--serif); font-size: 20px; outline: none; }
-        
-        .section-title { font-family: var(--serif); color: var(--gold); font-size: 24px; margin: 40px 0 20px; width: 100%; max-width: 800px; text-align: left; border-bottom: 1px solid #1a1a1a; padding-bottom: 10px; }
-        .container { width: 100%; max-width: 800px; margin: auto; }
-        .track { padding: 12px 0; display: flex; align-items: center; gap: 20px; border-bottom: 1px solid rgba(255,255,255,0.03); cursor: pointer; }
-        .track img { width: 50px; height: 50px; border-radius: 3px; object-fit: cover; }
-        .track-meta div:first-child { font-weight: 500; font-family: var(--serif); font-size: 18px; }
-        .track-meta div:last-child { font-size: 10px; color: var(--muted); text-transform: uppercase; }
+        .container { width: 100%; max-width: 800px; margin: auto; padding-bottom: 120px; }
+        .section-title { font-family: var(--serif); color: var(--gold); font-size: 20px; margin: 20px 0; border-bottom: 1px solid #1a1a1a; padding-bottom: 5px; }
 
-        /* Mobile Player Layout Fix */
-        .player { position: fixed; bottom: 0; width: 100%; background: rgba(5,5,5,0.98); backdrop-filter: blur(15px); padding: 15px 20px; display: flex; align-items: center; gap: 15px; border-top: 1px solid #1a1a1a; z-index: 1000; }
-        .mini-visual-stack { position: relative; width: 60px; height: 45px; background: #000; border-radius: 4px; overflow: hidden; flex-shrink: 0; }
-        
-        /* THE CRITICAL FIX: Hide the video but keep it 'active' */
-        #yt-player { width: 300%; height: 300%; margin-left: -100%; margin-top: -100%; pointer-events: none; opacity: 0.01; }
-        #pThumbOverlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: 2; pointer-events: none; }
+        .track { padding: 12px; display: flex; align-items: center; gap: 15px; border-bottom: 1px solid #111; cursor: pointer; border-radius: 8px; transition: 0.2s; }
+        .track:active { background: #1a1a1a; }
+        .track img { width: 50px; height: 50px; border-radius: 4px; object-fit: cover; }
+        .track-meta { overflow: hidden; }
+        .track-meta div:first-child { font-weight: 500; font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .track-meta div:last-child { font-size: 11px; color: var(--muted); text-transform: uppercase; }
 
-        .player-controls { flex: 1; display: flex; flex-direction: column; gap: 5px; min-width: 0; }
-        #progress { width: 100%; accent-color: var(--gold); height: 4px; }
-        .play-btn { background: var(--gold); border: none; padding: 10px; cursor: pointer; font-weight: bold; min-width: 70px; font-size: 10px; }
+        /* Mobile Background Player Fix */
+        .player { position: fixed; bottom: 0; width: 100%; background: #050505; border-top: 1px solid #1a1a1a; padding: 15px 20px; display: flex; align-items: center; gap: 15px; z-index: 1000; }
+        .mini-visual { position: relative; width: 50px; height: 50px; background: #000; border-radius: 4px; overflow: hidden; flex-shrink: 0; }
         
-        footer { padding: 60px 20px 120px; text-align: center; opacity: 0.5; font-size: 11px; border-top: 1px solid #111; }
-        .loader { width: 24px; height: 24px; border: 2px solid rgba(197,163,103,0.2); border-top-color: var(--gold); border-radius: 50%; animation: spin 0.8s linear infinite; margin: 20px auto; }
+        /* The "Stay Awake" YouTube Hack */
+        #yt-player { width: 200%; height: 200%; margin-left: -50%; margin-top: -50%; opacity: 0.01; }
+        #pThumb { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: 2; pointer-events: none; }
+
+        .player-info { flex: 1; min-width: 0; }
+        #pTitle { font-family: var(--serif); font-size: 14px; color: var(--gold); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .play-btn { background: var(--gold); border: none; width: 45px; height: 45px; border-radius: 50%; font-weight: bold; font-size: 10px; cursor: pointer; flex-shrink: 0; }
+        
+        #progress-bar { width: 100%; height: 3px; background: #222; position: absolute; top: 0; left: 0; }
+        #progress-inner { height: 100%; background: var(--gold); width: 0%; transition: width 0.5s linear; }
+
+        .loader { width: 20px; height: 20px; border: 2px solid #222; border-top-color: var(--gold); border-radius: 50%; animation: spin 0.8s linear infinite; margin: 10px auto; }
         @keyframes spin { to { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
 
-<div id="authScreen" class="auth-container">
-    <div id="loginCard" class="auth-card">
-        <div class="vofo-logo" style="font-size: 2.5rem;">VoFo</div>
-        <input type="text" id="lUser" placeholder="IDENTITY">
-        <input type="password" id="lPass" placeholder="ENCRYPTION">
-        <button class="auth-btn" onclick="handleAuth('login')">Initialize</button>
-        <p onclick="toggleAuth()" style="font-size:10px; margin-top:20px; cursor:pointer; color:var(--muted)">CREATE ACCOUNT</p>
-    </div>
-    <div id="registerCard" class="auth-card hidden">
-        <div class="vofo-logo" style="font-size: 2.5rem;">Registry</div>
-        <input type="text" id="rUser" placeholder="NEW IDENTITY">
-        <input type="password" id="rPass" placeholder="ENCRYPTION">
-        <button class="auth-btn" onclick="handleAuth('register')">Sign Up</button>
-        <p onclick="toggleAuth()" style="font-size:10px; margin-top:20px; cursor:pointer; color:var(--muted)">BACK TO LOGIN</p>
-    </div>
-</div>
+<nav><div style="font-family: var(--serif); color:var(--gold); letter-spacing: 2px;">VOFO MUSIC</div></nav>
 
-<div id="app" class="hidden">
-    <nav>
-        <div style="font-family: var(--serif); color:var(--gold); font-size: 20px;">VOFO</div>
-        <div class="nav-links">
-            <span id="navExplore" class="active" onclick="switchTab('explore')">Frequency</span>
-            <span id="navLibrary" onclick="switchTab('library')">Curation</span>
-            <span onclick="logout()">Terminal</span>
-        </div>
-    </nav>
-
-    <div id="exploreTab" class="hero">
-        <div class="vofo-logo">VoFo</div>
-        <div class="search-box">
-            <input id="searchInput" placeholder="Search mood..." onkeypress="if(event.key==='Enter') doSearch()">
-            <button class="auth-btn" onclick="doSearch()">Explore</button>
-        </div>
-        <div id="loading" class="hidden"><div class="loader"></div></div>
-        <div id="trendingWrapper" class="container">
-            <h2 class="section-title">Trending Now</h2>
-            <div id="trendingResults"></div>
-        </div>
-        <div id="resultsWrapper" class="container hidden">
-            <h2 class="section-title">Results</h2>
-            <div id="results"></div>
-        </div>
+<div class="hero">
+    <div class="vofo-logo">VoFo</div>
+    <div class="search-box">
+        <input id="searchInput" placeholder="Search track or artist..." onkeypress="if(event.key==='Enter') doSearch()">
+        <button class="search-btn" onclick="doSearch()">GO</button>
     </div>
+    
+    <div id="loading" class="hidden"><div class="loader"></div></div>
 
-    <div id="libraryTab" class="hero hidden">
-        <div class="vofo-logo">Curation</div>
-        <div id="libraryResults" class="container"></div>
+    <div class="container">
+        <div id="statusHeader" class="section-title">Trending Now</div>
+        <div id="results"></div>
     </div>
-
-    <footer>
-        <div>© 2026 VOFO MUSIC</div>
-        <div style="margin-top:10px; color:var(--gold)">ABHIRAM × PLAYBOYZ COMPANY ®</div>
-    </footer>
 </div>
 
 <div class="player hidden" id="player-bar">
-    <div class="mini-visual-stack">
+    <div id="progress-bar"><div id="progress-inner"></div></div>
+    <div class="mini-visual">
         <div id="yt-player"></div>
-        <img id="pThumbOverlay" src="">
+        <img id="pThumb" src="">
     </div>
-    <div class="player-controls">
-        <div style="display:flex; justify-content:space-between; align-items:center; gap:10px;">
-            <div style="overflow:hidden; white-space:nowrap; text-overflow:ellipsis;">
-                <div id="pTitle" style="font-family: var(--serif); font-size: 14px; color: var(--gold); overflow:hidden; text-overflow:ellipsis;"></div>
-                <div id="pArtist" style="font-size:8px; color:var(--muted); text-transform:uppercase;"></div>
-            </div>
-            <div id="likeBtn" onclick="toggleLike()" style="cursor:pointer; font-size: 16px;">❤</div>
-        </div>
-        <input type="range" id="progress" value="0">
+    <div class="player-info">
+        <div id="pTitle">Select a track</div>
+        <div id="pArtist" style="font-size: 10px; color: var(--muted);">...</div>
     </div>
-    <button id="playBtn" class="play-btn" onclick="togglePlay()">PAUSE</button>
+    <button id="playBtn" class="play-btn" onclick="togglePlay()">||</button>
 </div>
 
 <script src="https://www.youtube.com/iframe_api"></script>
 <script>
-    let player, currentPlaylist = [], currentIndex = -1, likedIds = new Set(), playerReady = false, progUpdate;
-
-    // Fix Auth Toggles
-    function toggleAuth() {
-        document.getElementById('loginCard').classList.toggle('hidden');
-        document.getElementById('registerCard').classList.toggle('hidden');
-    }
+    let player, currentPlaylist = [], currentIndex = -1, playerReady = false;
 
     function onYouTubeIframeAPIReady() {
         player = new YT.Player('yt-player', {
             height: '100%', width: '100%',
-            playerVars: { 'autoplay': 1, 'controls': 0, 'modestbranding': 1, 'rel': 0, 'enablejsapi': 1, 'origin': window.location.origin },
+            playerVars: { 'autoplay': 1, 'controls': 0, 'modestbranding': 1, 'rel': 0, 'enablejsapi': 1 },
             events: { 
-                'onReady': () => { playerReady = true; },
-                'onStateChange': onPlayerStateChange,
-                'onError': () => { if(currentIndex < currentPlaylist.length - 1) playSong(currentIndex + 1, currentPlaylist); }
+                'onReady': () => { playerReady = true; fetchTrending(); },
+                'onStateChange': (e) => {
+                    const btn = document.getElementById('playBtn');
+                    btn.innerText = e.data === 1 ? "||" : "▶";
+                    if(e.data === 0) skipNext();
+                    updateProgress();
+                }
             }
         });
     }
 
-    // Media Session - The Magic for Mobile Lockscreen
+    // Media Session - Keeps audio playing on lock screen
     function updateMediaSession(song) {
         if ('mediaSession' in navigator) {
             navigator.mediaSession.metadata = new MediaMetadata({
@@ -160,123 +111,71 @@
             });
             navigator.mediaSession.setActionHandler('play', () => player.playVideo());
             navigator.mediaSession.setActionHandler('pause', () => player.pauseVideo());
-            navigator.mediaSession.setActionHandler('nexttrack', () => {
-                if(currentIndex < currentPlaylist.length - 1) playSong(currentIndex + 1, currentPlaylist);
-            });
+            navigator.mediaSession.setActionHandler('nexttrack', skipNext);
             navigator.mediaSession.setActionHandler('previoustrack', () => {
                 if(currentIndex > 0) playSong(currentIndex - 1, currentPlaylist);
             });
         }
     }
 
-    async function handleAuth(type) {
-        const u = document.getElementById(type==='login'?'lUser':'rUser').value;
-        const p = document.getElementById(type==='login'?'lPass':'rPass').value;
-        const res = await fetch(`/api/auth/${type}`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({username:u, password:p}) });
-        const data = await res.json();
-        if(data.success) { 
-            if(type==='register') { alert("Registry Complete. Please Initialize."); toggleAuth(); }
-            else { checkStatus(); }
-        } else alert(data.error);
-    }
-
-    async function checkStatus() {
-        const res = await fetch('/api/auth/status'); const data = await res.json();
-        if(data.logged_in) { 
-            document.getElementById('authScreen').classList.add('hidden'); 
-            document.getElementById('app').classList.remove('hidden'); 
-            fetchTrending(); fetchLibrary();
-        }
-    }
-
-    async function logout() { await fetch('/api/auth/logout'); location.reload(); }
-
-    function switchTab(tab) {
-        document.getElementById('exploreTab').classList.toggle('hidden', tab!=='explore');
-        document.getElementById('libraryTab').classList.toggle('hidden', tab!=='library');
-        document.getElementById('navExplore').classList.toggle('active', tab==='explore');
-        document.getElementById('navLibrary').classList.toggle('active', tab==='library');
-        if(tab==='library') fetchLibrary();
-    }
-
     async function fetchTrending() {
-        const res = await fetch('/api/trending'); const data = await res.json();
-        renderTracks(data, 'trendingResults');
+        const res = await fetch('/api/trending');
+        const data = await res.json();
+        renderTracks(data);
     }
 
     async function doSearch() {
-        const q = document.getElementById('searchInput').value; if(!q) return;
+        const q = document.getElementById('searchInput').value;
+        if(!q) return;
         document.getElementById('loading').classList.remove('hidden');
-        document.getElementById('trendingWrapper').classList.add('hidden');
-        document.getElementById('resultsWrapper').classList.remove('hidden');
         const res = await fetch(`/api/search?q=${encodeURIComponent(q)}`);
         const data = await res.json();
         document.getElementById('loading').classList.add('hidden');
-        renderTracks(data, 'results');
+        document.getElementById('statusHeader').innerText = "Search Results";
+        renderTracks(data);
     }
 
-    function renderTracks(tracks, divId) {
-        document.getElementById(divId).innerHTML = tracks.map((s, i) => `
-            <div class="track" onclick='playSong(${i}, ${JSON.stringify(tracks).replace(/'/g, "&apos;")})'>
+    function renderTracks(tracks) {
+        currentPlaylist = tracks;
+        const list = document.getElementById('results');
+        list.innerHTML = tracks.map((s, i) => `
+            <div class="track" onclick="playSong(${i})">
                 <img src="${s.thumbnail}">
                 <div class="track-meta"><div>${s.title}</div><div>${s.artist}</div></div>
             </div>
         `).join('');
     }
 
-    function playSong(index, playlist) {
-        if(!playerReady) return;
-        currentPlaylist = playlist; currentIndex = index; const song = playlist[index];
+    function playSong(index) {
+        currentIndex = index;
+        const song = currentPlaylist[index];
         document.getElementById('player-bar').classList.remove('hidden');
         document.getElementById('pTitle').innerText = song.title;
         document.getElementById('pArtist').innerText = song.artist;
-        document.getElementById('pThumbOverlay').src = song.thumbnail;
+        document.getElementById('pThumb').src = song.thumbnail;
+        
         player.loadVideoById(song.id);
-        updateLikeUI(song.id);
         updateMediaSession(song);
-        startProgress();
     }
 
     function togglePlay() {
-        if(!playerReady) return;
-        player.getPlayerState() === 1 ? player.pauseVideo() : player.playVideo();
+        if(player.getPlayerState() === 1) player.pauseVideo();
+        else player.playVideo();
     }
 
-    function startProgress() {
-        clearInterval(progUpdate);
-        progUpdate = setInterval(() => {
+    function skipNext() {
+        if(currentIndex < currentPlaylist.length - 1) playSong(currentIndex + 1);
+    }
+
+    function updateProgress() {
+        setInterval(() => {
             if(player && player.getDuration) {
-                const cur = player.getCurrentTime(), dur = player.getDuration();
-                if(dur > 0) document.getElementById('progress').value = (cur/dur) * 100;
+                const perc = (player.getCurrentTime() / player.getDuration()) * 100;
+                document.getElementById('progress-inner').style.width = perc + "%";
             }
         }, 1000);
     }
-
-    document.getElementById('progress').oninput = () => {
-        if(playerReady) player.seekTo((document.getElementById('progress').value / 100) * player.getDuration());
-    };
-
-    function onPlayerStateChange(event) {
-        document.getElementById('playBtn').innerText = event.data === 1 ? "PAUSE" : "PLAY";
-        if(event.data === 0 && currentIndex < currentPlaylist.length - 1) playSong(currentIndex + 1, currentPlaylist);
-    }
-
-    async function fetchLibrary() {
-        const res = await fetch('/api/library'); const data = await res.json();
-        likedIds = new Set(data.map(s => s.id)); 
-        if(!document.getElementById('libraryTab').classList.contains('hidden')) renderTracks(data, 'libraryResults');
-    }
-
-    async function toggleLike() {
-        const song = currentPlaylist[currentIndex];
-        const res = await fetch('/api/like', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(song) });
-        const data = await res.json();
-        data.status === 'liked' ? likedIds.add(song.id) : likedIds.delete(song.id);
-        updateLikeUI(song.id);
-    }
-    
-    function updateLikeUI(id) { document.getElementById('likeBtn').style.color = likedIds.has(id) ? var(--red) : "var(--muted)"; }
-    checkStatus();
 </script>
+
 </body>
 </html>
