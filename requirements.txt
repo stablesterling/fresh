@@ -3,5 +3,4 @@ uvicorn
 ytmusicapi
 pytubefix
 sqlalchemy
-psycopg2-binary
 passlib[bcrypt]
