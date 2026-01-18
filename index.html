@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>VoFo Music | High-Fidelity</title>
     <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet">
     <style>
@@ -11,7 +11,6 @@
         body { background: var(--bg); color: var(--soft); font-family: var(--sans); min-height: 100vh; overflow-x: hidden; }
         .hidden { display: none !important; }
         
-        /* Branding */
         .vofo-logo { font-family: var(--serif); font-size: clamp(3rem, 10vw, 6rem); font-weight: 500; color: var(--gold); letter-spacing: 8px; margin: 10px 0; text-transform: uppercase; text-align: center; }
         
         /* Auth Screen */
@@ -20,11 +19,10 @@
         .auth-card input { width: 100%; padding: 14px; margin-bottom: 12px; background: #000; border: 1px solid #222; color: white; outline: none; }
         .auth-btn { width: 100%; padding: 16px; background: var(--gold); border: none; font-weight: 600; cursor: pointer; color: #000; letter-spacing: 2px; text-transform: uppercase; }
 
-        /* Nav */
+        /* Navigation */
         nav { display: flex; justify-content: space-between; align-items: center; padding: 20px 40px; border-bottom: 1px solid rgba(255,255,255,0.03); position: sticky; top: 0; background: var(--bg); z-index: 100; }
-        .nav-links span { font-size: 11px; letter-spacing: 2px; cursor: pointer; color: var(--muted); margin-left: 20px; text-transform: uppercase; transition: 0.3s; }
+        .nav-links span { font-size: 11px; letter-spacing: 2px; cursor: pointer; color: var(--muted); margin-left: 20px; text-transform: uppercase; }
         .nav-links span.active { color: var(--gold); }
-        .nav-links .logout-item:hover { color: var(--red); }
         
         /* Sections */
         .hero { display: flex; flex-direction: column; align-items: center; padding: 40px 20px; min-height: 80vh; }
@@ -35,24 +33,22 @@
         .container { width: 100%; max-width: 800px; margin: auto; }
         .track { padding: 12px 0; display: flex; align-items: center; gap: 20px; border-bottom: 1px solid rgba(255,255,255,0.03); cursor: pointer; }
         .track img { width: 50px; height: 50px; border-radius: 3px; object-fit: cover; }
-        .track-meta div:first-child { font-weight: 500; font-family: var(--serif); font-size: 18px; color: var(--soft); }
+        .track-meta div:first-child { font-weight: 500; font-family: var(--serif); font-size: 18px; }
         .track-meta div:last-child { font-size: 10px; color: var(--muted); text-transform: uppercase; }
 
-        /* FOOTER */
-        footer { padding: 80px 20px 150px; text-align: center; border-top: 1px solid rgba(255,255,255,0.03); margin-top: 50px; }
-        .f-copy { font-size: 10px; letter-spacing: 3px; color: var(--muted); text-transform: uppercase; margin-bottom: 12px; }
-        .f-dev { font-family: var(--serif); color: var(--gold); font-size: 15px; letter-spacing: 1px; }
-        .f-dev span { color: var(--soft); font-weight: 600; }
+        /* Mobile Player Layout Fix */
+        .player { position: fixed; bottom: 0; width: 100%; background: rgba(5,5,5,0.98); backdrop-filter: blur(15px); padding: 15px 20px; display: flex; align-items: center; gap: 15px; border-top: 1px solid #1a1a1a; z-index: 1000; }
+        .mini-visual-stack { position: relative; width: 60px; height: 45px; background: #000; border-radius: 4px; overflow: hidden; flex-shrink: 0; }
+        
+        /* THE CRITICAL FIX: Hide the video but keep it 'active' */
+        #yt-player { width: 300%; height: 300%; margin-left: -100%; margin-top: -100%; pointer-events: none; opacity: 0.01; }
+        #pThumbOverlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: 2; pointer-events: none; }
 
-        /* PLAYER */
-        .player { position: fixed; bottom: 0; width: 100%; background: rgba(5,5,5,0.98); backdrop-filter: blur(15px); padding: 15px 30px; display: flex; align-items: center; gap: 20px; border-top: 1px solid #1a1a1a; z-index: 1000; }
-        .mini-visual-stack { position: relative; width: 85px; height: 60px; background: #000; border-radius: 4px; overflow: hidden; border: 1px solid var(--gold); flex-shrink: 0; }
-        #yt-player { width: 400%; height: 400%; margin-left: -150%; margin-top: -150%; pointer-events: none; }
-        #pThumbOverlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: 2; }
-
-        .player-controls { flex: 1; display: flex; flex-direction: column; gap: 5px; }
-        #progress { width: 100%; accent-color: var(--gold); cursor: pointer; height: 4px; }
-        .play-btn { background: var(--gold); border: none; padding: 10px 15px; cursor: pointer; font-weight: bold; min-width: 90px; text-transform: uppercase; font-size: 10px; }
+        .player-controls { flex: 1; display: flex; flex-direction: column; gap: 5px; min-width: 0; }
+        #progress { width: 100%; accent-color: var(--gold); height: 4px; }
+        .play-btn { background: var(--gold); border: none; padding: 10px; cursor: pointer; font-weight: bold; min-width: 70px; font-size: 10px; }
+        
+        footer { padding: 60px 20px 120px; text-align: center; opacity: 0.5; font-size: 11px; border-top: 1px solid #111; }
         .loader { width: 24px; height: 24px; border: 2px solid rgba(197,163,103,0.2); border-top-color: var(--gold); border-radius: 50%; animation: spin 0.8s linear infinite; margin: 20px auto; }
         @keyframes spin { to { transform: rotate(360deg); } }
     </style>
@@ -60,64 +56,57 @@
 <body>
 
 <div id="authScreen" class="auth-container">
-    <div id="loginForm" class="auth-card">
-        <div class="vofo-logo" style="font-size: 3rem;">VoFo</div>
+    <div id="loginCard" class="auth-card">
+        <div class="vofo-logo" style="font-size: 2.5rem;">VoFo</div>
         <input type="text" id="lUser" placeholder="IDENTITY">
         <input type="password" id="lPass" placeholder="ENCRYPTION">
         <button class="auth-btn" onclick="handleAuth('login')">Initialize</button>
-        <p style="font-size:10px; margin-top:20px; cursor:pointer; color:var(--muted)" onclick="toggleAuth()">CREATE ACCOUNT</p>
+        <p onclick="toggleAuth()" style="font-size:10px; margin-top:20px; cursor:pointer; color:var(--muted)">CREATE ACCOUNT</p>
     </div>
-    <div id="registerForm" class="auth-card hidden">
-        <div class="vofo-logo" style="font-size: 3rem;">Registry</div>
-        <input type="text" id="rUser" placeholder="USERNAME">
-        <input type="password" id="rPass" placeholder="PASSWORD">
+    <div id="registerCard" class="auth-card hidden">
+        <div class="vofo-logo" style="font-size: 2.5rem;">Registry</div>
+        <input type="text" id="rUser" placeholder="NEW IDENTITY">
+        <input type="password" id="rPass" placeholder="ENCRYPTION">
         <button class="auth-btn" onclick="handleAuth('register')">Sign Up</button>
-        <p style="font-size:10px; margin-top:20px; cursor:pointer; color:var(--muted)" onclick="toggleAuth()">BACK TO LOGIN</p>
+        <p onclick="toggleAuth()" style="font-size:10px; margin-top:20px; cursor:pointer; color:var(--muted)">BACK TO LOGIN</p>
     </div>
 </div>
 
 <div id="app" class="hidden">
     <nav>
-        <div style="font-family: var(--serif); color:var(--gold); font-size: 22px; letter-spacing: 2px;">VOFO</div>
+        <div style="font-family: var(--serif); color:var(--gold); font-size: 20px;">VOFO</div>
         <div class="nav-links">
-            <span id="navExplore" class="active" onclick="switchTab('explore')">Search</span>
-            <span id="navLibrary" onclick="switchTab('library')">Liked Songs</span>
-            <span class="logout-item" onclick="logout()">Logout</span>
+            <span id="navExplore" class="active" onclick="switchTab('explore')">Frequency</span>
+            <span id="navLibrary" onclick="switchTab('library')">Curation</span>
+            <span onclick="logout()">Terminal</span>
         </div>
     </nav>
 
-    <div id="exploreTab">
-        <div class="hero">
-            <div class="vofo-logo">VoFo</div>
-            <div class="search-box">
-                <input id="searchInput" placeholder="Search mood or track..." onkeypress="if(event.key==='Enter') doSearch()">
-                <button class="auth-btn" onclick="doSearch()">Explore</button>
-            </div>
-            <div id="loading" class="hidden"><div class="loader"></div></div>
-            <div id="trendingWrapper" class="container">
-                <h2 class="section-title">Trending Now</h2>
-                <div id="trendingResults"></div>
-            </div>
-            <div id="resultsWrapper" class="container hidden">
-                <h2 class="section-title">Results</h2>
-                <div id="results"></div>
-            </div>
+    <div id="exploreTab" class="hero">
+        <div class="vofo-logo">VoFo</div>
+        <div class="search-box">
+            <input id="searchInput" placeholder="Search mood..." onkeypress="if(event.key==='Enter') doSearch()">
+            <button class="auth-btn" onclick="doSearch()">Explore</button>
+        </div>
+        <div id="loading" class="hidden"><div class="loader"></div></div>
+        <div id="trendingWrapper" class="container">
+            <h2 class="section-title">Trending Now</h2>
+            <div id="trendingResults"></div>
+        </div>
+        <div id="resultsWrapper" class="container hidden">
+            <h2 class="section-title">Results</h2>
+            <div id="results"></div>
         </div>
     </div>
 
-    <div id="libraryTab" class="hidden">
-        <div class="hero">
-            <div class="vofo-logo">Curation</div>
-            <div class="container">
-                <h2 class="section-title">Your Library</h2>
-                <div id="libraryResults"></div>
-            </div>
-        </div>
+    <div id="libraryTab" class="hero hidden">
+        <div class="vofo-logo">Curation</div>
+        <div id="libraryResults" class="container"></div>
     </div>
 
     <footer>
-        <div class="f-copy">© 2026. All Rights Reserved.</div>
-        <div class="f-dev">Engineered & Developed by <span>ABHIRAM</span> in collab with <span>PLAYBOYZ</span> Company ®</div>
+        <div>© 2026 VOFO MUSIC</div>
+        <div style="margin-top:10px; color:var(--gold)">ABHIRAM × PLAYBOYZ COMPANY ®</div>
     </footer>
 </div>
 
@@ -127,9 +116,12 @@
         <img id="pThumbOverlay" src="">
     </div>
     <div class="player-controls">
-        <div style="display:flex; justify-content:space-between; align-items:center;">
-            <div><div id="pTitle" style="font-family: var(--serif); font-size: 16px; color: var(--gold);"></div><div id="pArtist" style="font-size:9px; color:var(--muted); text-transform:uppercase;"></div></div>
-            <div id="likeBtn" onclick="toggleLike()" style="cursor:pointer; font-size: 18px;">❤</div>
+        <div style="display:flex; justify-content:space-between; align-items:center; gap:10px;">
+            <div style="overflow:hidden; white-space:nowrap; text-overflow:ellipsis;">
+                <div id="pTitle" style="font-family: var(--serif); font-size: 14px; color: var(--gold); overflow:hidden; text-overflow:ellipsis;"></div>
+                <div id="pArtist" style="font-size:8px; color:var(--muted); text-transform:uppercase;"></div>
+            </div>
+            <div id="likeBtn" onclick="toggleLike()" style="cursor:pointer; font-size: 16px;">❤</div>
         </div>
         <input type="range" id="progress" value="0">
     </div>
@@ -140,67 +132,25 @@
 <script>
     let player, currentPlaylist = [], currentIndex = -1, likedIds = new Set(), playerReady = false, progUpdate;
 
+    // Fix Auth Toggles
+    function toggleAuth() {
+        document.getElementById('loginCard').classList.toggle('hidden');
+        document.getElementById('registerCard').classList.toggle('hidden');
+    }
+
     function onYouTubeIframeAPIReady() {
         player = new YT.Player('yt-player', {
             height: '100%', width: '100%',
-            playerVars: { 
-                'autoplay': 1, 'controls': 0, 'modestbranding': 1, 'rel': 0, 
-                'enablejsapi': 1, 'origin': window.location.origin 
-            },
+            playerVars: { 'autoplay': 1, 'controls': 0, 'modestbranding': 1, 'rel': 0, 'enablejsapi': 1, 'origin': window.location.origin },
             events: { 
                 'onReady': () => { playerReady = true; },
                 'onStateChange': onPlayerStateChange,
-                'onError': (e) => { 
-                    if(currentIndex < currentPlaylist.length - 1) playSong(currentIndex + 1, currentPlaylist);
-                }
+                'onError': () => { if(currentIndex < currentPlaylist.length - 1) playSong(currentIndex + 1, currentPlaylist); }
             }
         });
     }
 
-    function toggleAuth() { loginForm.classList.toggle('hidden'); registerForm.classList.toggle('hidden'); }
-    async function handleAuth(type) {
-        const u = document.getElementById(type==='login'?'lUser':'rUser').value;
-        const p = document.getElementById(type==='login'?'lPass':'rPass').value;
-        const res = await fetch(`/api/auth/${type}`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({username:u, password:p}) });
-        const data = await res.json();
-        if(data.success) { type==='register' ? toggleAuth() : checkStatus(); } else alert(data.error);
-    }
-
-    async function checkStatus() {
-        const res = await fetch('/api/auth/status'); const data = await res.json();
-        if(data.logged_in) { authScreen.classList.add('hidden'); app.classList.remove('hidden'); fetchTrending(); fetchLibrary(); }
-    }
-
-    async function logout() { await fetch('/api/auth/logout'); location.reload(); }
-
-    function switchTab(tab) {
-        exploreTab.classList.toggle('hidden', tab!=='explore'); libraryTab.classList.toggle('hidden', tab!=='library');
-        navExplore.classList.toggle('active', tab==='explore'); navLibrary.classList.toggle('active', tab==='library');
-        if(tab==='library') fetchLibrary();
-    }
-
-    async function fetchTrending() {
-        const res = await fetch('/api/trending'); const data = await res.json();
-        renderTracks(data, 'trendingResults');
-    }
-
-    async function doSearch() {
-        const q = searchInput.value; if(!q) return;
-        loading.classList.remove('hidden'); trendingWrapper.classList.add('hidden'); resultsWrapper.classList.remove('hidden');
-        const res = await fetch(`/api/search?q=${encodeURIComponent(q)}`);
-        const data = await res.json();
-        loading.classList.add('hidden'); renderTracks(data, 'results');
-    }
-
-    function renderTracks(tracks, divId) {
-        document.getElementById(divId).innerHTML = tracks.map((s, i) => `
-            <div class="track" onclick='playSong(${i}, ${JSON.stringify(tracks).replace(/'/g, "&apos;")})'>
-                <img src="${s.thumbnail}">
-                <div class="track-meta"><div>${s.title}</div><div>${s.artist}</div></div>
-            </div>
-        `).join('');
-    }
-
+    // Media Session - The Magic for Mobile Lockscreen
     function updateMediaSession(song) {
         if ('mediaSession' in navigator) {
             navigator.mediaSession.metadata = new MediaMetadata({
@@ -210,9 +160,68 @@
             });
             navigator.mediaSession.setActionHandler('play', () => player.playVideo());
             navigator.mediaSession.setActionHandler('pause', () => player.pauseVideo());
-            navigator.mediaSession.setActionHandler('nexttrack', () => { if(currentIndex < currentPlaylist.length - 1) playSong(currentIndex + 1, currentPlaylist); });
-            navigator.mediaSession.setActionHandler('previoustrack', () => { if(currentIndex > 0) playSong(currentIndex - 1, currentPlaylist); });
+            navigator.mediaSession.setActionHandler('nexttrack', () => {
+                if(currentIndex < currentPlaylist.length - 1) playSong(currentIndex + 1, currentPlaylist);
+            });
+            navigator.mediaSession.setActionHandler('previoustrack', () => {
+                if(currentIndex > 0) playSong(currentIndex - 1, currentPlaylist);
+            });
         }
+    }
+
+    async function handleAuth(type) {
+        const u = document.getElementById(type==='login'?'lUser':'rUser').value;
+        const p = document.getElementById(type==='login'?'lPass':'rPass').value;
+        const res = await fetch(`/api/auth/${type}`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({username:u, password:p}) });
+        const data = await res.json();
+        if(data.success) { 
+            if(type==='register') { alert("Registry Complete. Please Initialize."); toggleAuth(); }
+            else { checkStatus(); }
+        } else alert(data.error);
+    }
+
+    async function checkStatus() {
+        const res = await fetch('/api/auth/status'); const data = await res.json();
+        if(data.logged_in) { 
+            document.getElementById('authScreen').classList.add('hidden'); 
+            document.getElementById('app').classList.remove('hidden'); 
+            fetchTrending(); fetchLibrary();
+        }
+    }
+
+    async function logout() { await fetch('/api/auth/logout'); location.reload(); }
+
+    function switchTab(tab) {
+        document.getElementById('exploreTab').classList.toggle('hidden', tab!=='explore');
+        document.getElementById('libraryTab').classList.toggle('hidden', tab!=='library');
+        document.getElementById('navExplore').classList.toggle('active', tab==='explore');
+        document.getElementById('navLibrary').classList.toggle('active', tab==='library');
+        if(tab==='library') fetchLibrary();
+    }
+
+    async function fetchTrending() {
+        const res = await fetch('/api/trending'); const data = await res.json();
+        renderTracks(data, 'trendingResults');
+    }
+
+    async function doSearch() {
+        const q = document.getElementById('searchInput').value; if(!q) return;
+        document.getElementById('loading').classList.remove('hidden');
+        document.getElementById('trendingWrapper').classList.add('hidden');
+        document.getElementById('resultsWrapper').classList.remove('hidden');
+        const res = await fetch(`/api/search?q=${encodeURIComponent(q)}`);
+        const data = await res.json();
+        document.getElementById('loading').classList.add('hidden');
+        renderTracks(data, 'results');
+    }
+
+    function renderTracks(tracks, divId) {
+        document.getElementById(divId).innerHTML = tracks.map((s, i) => `
+            <div class="track" onclick='playSong(${i}, ${JSON.stringify(tracks).replace(/'/g, "&apos;")})'>
+                <img src="${s.thumbnail}">
+                <div class="track-meta"><div>${s.title}</div><div>${s.artist}</div></div>
+            </div>
+        `).join('');
     }
 
     function playSong(index, playlist) {
@@ -243,17 +252,19 @@
         }, 1000);
     }
 
-    progress.oninput = () => { if(playerReady) player.seekTo((progress.value / 100) * player.getDuration()); };
+    document.getElementById('progress').oninput = () => {
+        if(playerReady) player.seekTo((document.getElementById('progress').value / 100) * player.getDuration());
+    };
 
     function onPlayerStateChange(event) {
-        playBtn.innerText = event.data === 1 ? "PAUSE" : "PLAY";
+        document.getElementById('playBtn').innerText = event.data === 1 ? "PAUSE" : "PLAY";
         if(event.data === 0 && currentIndex < currentPlaylist.length - 1) playSong(currentIndex + 1, currentPlaylist);
     }
 
     async function fetchLibrary() {
         const res = await fetch('/api/library'); const data = await res.json();
         likedIds = new Set(data.map(s => s.id)); 
-        if(!libraryTab.classList.contains('hidden')) renderTracks(data, 'libraryResults');
+        if(!document.getElementById('libraryTab').classList.contains('hidden')) renderTracks(data, 'libraryResults');
     }
 
     async function toggleLike() {
@@ -264,7 +275,7 @@
         updateLikeUI(song.id);
     }
     
-    function updateLikeUI(id) { likeBtn.style.color = likedIds.has(id) ? var(--red) : "var(--muted)"; }
+    function updateLikeUI(id) { document.getElementById('likeBtn').style.color = likedIds.has(id) ? var(--red) : "var(--muted)"; }
     checkStatus();
 </script>
 </body>
