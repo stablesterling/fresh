@@ -1,5 +1,4 @@
 fastapi
 uvicorn
 ytmusicapi
-python-multipart
 pytubefix
