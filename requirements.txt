@@ -1,4 +1,7 @@
 fastapi
 uvicorn
 ytmusicapi
-python-multipart
+pytubefix
+sqlalchemy
+psycopg2-binary
+passlib[bcrypt]
