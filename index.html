@@ -2,80 +2,183 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VoFo Music</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>VoFo Music | Persistent Mode</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500&family=Montserrat:wght@300;400;600&display=swap" rel="stylesheet">
     <style>
-        body { background: #0d0d0d; color: #e5e5e5; font-family: sans-serif; padding: 20px; padding-bottom: 120px; }
-        .track { display: flex; align-items: center; gap: 15px; padding: 12px; border-bottom: 1px solid #222; cursor: pointer; }
-        .track img { width: 50px; height: 50px; border-radius: 4px; }
-        #player-bar { position: fixed; bottom: 0; left: 0; width: 100%; background: #050505; padding: 15px; border-top: 2px solid #c5a367; display: none; z-index: 1000; }
-        input { padding: 10px; width: 70%; background: #222; border: 1px solid #444; color: white; border-radius: 4px; }
-        button { padding: 10px 20px; background: #c5a367; border: none; font-weight: bold; border-radius: 4px; }
+        :root { --bg: #0d0d0d; --gold: #c5a367; --soft: #e5e5e5; --muted: #666666; --serif: 'Cormorant Garamond', serif; --sans: 'Montserrat', sans-serif; }
+        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+        body { background: var(--bg); color: var(--soft); font-family: var(--sans); min-height: 100vh; }
+        .hidden { display: none !important; }
+        
+        nav { display: flex; justify-content: center; padding: 15px; border-bottom: 1px solid #1a1a1a; position: sticky; top: 0; background: var(--bg); z-index: 100; }
+        .vofo-logo { font-family: var(--serif); font-size: 2.2rem; color: var(--gold); letter-spacing: 5px; text-transform: uppercase; text-align: center; margin: 15px 0; }
+        
+        .hero { display: flex; flex-direction: column; align-items: center; padding: 20px; }
+        .search-box { width: 100%; max-width: 500px; margin-bottom: 25px; display: flex; gap: 8px; }
+        .search-box input { flex: 1; padding: 14px; background: #111; border: 1px solid #222; color: white; outline: none; border-radius: 4px; font-size: 16px; }
+        .search-btn { padding: 0 18px; background: var(--gold); border: none; font-weight: 600; cursor: pointer; border-radius: 4px; }
+
+        .container { width: 100%; max-width: 800px; margin: auto; padding-bottom: 140px; }
+        .section-title { font-family: var(--serif); color: var(--gold); font-size: 18px; margin: 15px 0; border-bottom: 1px solid #1a1a1a; padding-bottom: 5px; }
+
+        .track { padding: 10px; display: flex; align-items: center; gap: 12px; border-bottom: 1px solid #111; cursor: pointer; border-radius: 6px; }
+        .track:active { background: #1a1a1a; }
+        .track img { width: 45px; height: 45px; border-radius: 4px; object-fit: cover; }
+        .track-meta { overflow: hidden; }
+        .track-meta div:first-child { font-weight: 500; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .track-meta div:last-child { font-size: 10px; color: var(--muted); text-transform: uppercase; }
+
+        /* PERSISTENT PLAYER UI */
+        .player { position: fixed; bottom: 0; width: 100%; background: #050505; border-top: 1px solid #1a1a1a; padding: 12px 15px; display: flex; align-items: center; gap: 12px; z-index: 1000; box-shadow: 0 -5px 20px rgba(0,0,0,0.8); }
+        .mini-visual { position: relative; width: 45px; height: 45px; background: #000; border-radius: 4px; overflow: hidden; flex-shrink: 0; }
+        #yt-player { width: 200%; height: 200%; margin-left: -50%; margin-top: -50%; opacity: 0.001; }
+        #pThumb { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: 2; pointer-events: none; }
+
+        .player-info { flex: 1; min-width: 0; }
+        #pTitle { font-family: var(--serif); font-size: 13px; color: var(--gold); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 600; }
+        .play-btn { background: var(--gold); border: none; width: 40px; height: 40px; border-radius: 50%; font-weight: bold; cursor: pointer; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+        
+        #progress-bar { width: 100%; height: 3px; background: #222; position: absolute; top: 0; left: 0; }
+        #progress-inner { height: 100%; background: var(--gold); width: 0%; }
     </style>
 </head>
 <body>
 
-    <h2>VoFo Music</h2>
-    <div style="margin-bottom: 20px;">
-        <input id="q" type="text" placeholder="Search song or artist...">
-        <button onclick="doSearch()">Search</button>
+<nav><div style="font-family: var(--serif); color:var(--gold); letter-spacing: 2px; font-size: 18px;">VOFO MUSIC</div></nav>
+
+<div class="hero">
+    <div class="vofo-logo">VoFo</div>
+    <div class="search-box">
+        <input id="searchInput" placeholder="Search mood..." onkeypress="if(event.key==='Enter') doSearch()">
+        <button class="search-btn" onclick="doSearch()">GO</button>
     </div>
     
-    <div id="results"></div>
-
-    <div id="player-bar">
-        <div id="pTitle" style="font-weight: bold; color: #c5a367; margin-bottom: 10px;"></div>
-        <audio id="audioPlayer" controls style="width: 100%;"></audio>
+    <div class="container">
+        <div id="statusHeader" class="section-title">Trending Now</div>
+        <div id="results"></div>
     </div>
+</div>
 
-    <script>
-        async function doSearch() {
-            const q = document.getElementById('q').value;
-            const res = await fetch(`/api/search?q=${encodeURIComponent(q)}`);
-            const data = await res.json();
-            const list = document.getElementById('results');
-            list.innerHTML = data.map(s => `
-                <div class="track" onclick="playTrack('${s.id}', '${s.title.replace(/'/g, "\\'")}', '${s.artist.replace(/'/g, "\\'")}', '${s.thumbnail}')">
-                    <img src="${s.thumbnail}">
-                    <div>
-                        <div style="font-weight:bold">${s.title}</div>
-                        <div style="font-size:12px; color:#888">${s.artist}</div>
-                    </div>
-                </div>
-            `).join('');
+<div class="player hidden" id="player-bar">
+    <div id="progress-bar"><div id="progress-inner"></div></div>
+    <div class="mini-visual"><div id="yt-player"></div><img id="pThumb" src=""></div>
+    <div class="player-info"><div id="pTitle">...</div><div id="pArtist" style="font-size: 9px; color: var(--muted);">...</div></div>
+    <button id="playBtn" class="play-btn" onclick="togglePlay()">▶</button>
+</div>
+
+<script src="https://www.youtube.com/iframe_api"></script>
+<script>
+    let player, currentPlaylist = [], currentIndex = -1, playerReady = false;
+
+    // 1. RECOVERY LOGIC: Load data from phone storage on startup
+    function loadSavedState() {
+        const savedList = localStorage.getItem('vofo_list');
+        const savedIndex = localStorage.getItem('vofo_index');
+        
+        if (savedList) {
+            currentPlaylist = JSON.parse(savedList);
+            renderTracks(currentPlaylist, false); // Don't overwrite storage again
+            document.getElementById('statusHeader').innerText = "Recovered Session";
         }
+        
+        if (savedIndex !== null && currentPlaylist.length > 0) {
+            currentIndex = parseInt(savedIndex);
+            preparePlayer(currentIndex);
+        }
+    }
 
-        async function playTrack(id, title, artist, thumb) {
-            document.getElementById('player-bar').style.display = 'block';
-            document.getElementById('pTitle').innerText = "Connecting...";
-            
-            try {
-                const res = await fetch(`/api/stream?id=${id}`);
-                const data = await res.json();
-                
-                if(data.url) {
-                    const audio = document.getElementById('audioPlayer');
-                    audio.src = data.url;
-                    audio.play();
-                    document.getElementById('pTitle').innerText = title + " - " + artist;
-
-                    // MEDIA SESSION API (Allows background play & lock screen controls)
-                    if ('mediaSession' in navigator) {
-                        navigator.mediaSession.metadata = new MediaMetadata({
-                            title: title,
-                            artist: artist,
-                            artwork: [{ src: thumb, sizes: '512x512', type: 'image/jpeg' }]
-                        });
-                        navigator.mediaSession.setActionHandler('play', () => audio.play());
-                        navigator.mediaSession.setActionHandler('pause', () => audio.pause());
-                    }
-                } else {
-                    alert("Error: " + (data.error || "Could not fetch stream"));
+    function onYouTubeIframeAPIReady() {
+        player = new YT.Player('yt-player', {
+            height: '100%', width: '100%',
+            playerVars: { 'autoplay': 1, 'controls': 0, 'modestbranding': 1, 'rel': 0, 'enablejsapi': 1 },
+            events: { 
+                'onReady': () => { 
+                    playerReady = true; 
+                    loadSavedState();
+                    if(currentPlaylist.length === 0) fetchTrending(); 
+                },
+                'onStateChange': (e) => {
+                    document.getElementById('playBtn').innerText = e.data === 1 ? "||" : "▶";
+                    if(e.data === 0) skipNext();
                 }
-            } catch (err) {
-                alert("Server Connection Failed");
             }
+        });
+        setInterval(updateProgressBar, 1000);
+    }
+
+    async function fetchTrending() {
+        const res = await fetch('/api/trending');
+        const data = await res.json();
+        renderTracks(data);
+    }
+
+    async function doSearch() {
+        const q = document.getElementById('searchInput').value;
+        if(!q) return;
+        const res = await fetch(`/api/search?q=${encodeURIComponent(q)}`);
+        const data = await res.json();
+        document.getElementById('statusHeader').innerText = "Search Results";
+        renderTracks(data);
+    }
+
+    function renderTracks(tracks, shouldSave = true) {
+        currentPlaylist = tracks;
+        if(shouldSave) localStorage.setItem('vofo_list', JSON.stringify(tracks));
+        
+        const list = document.getElementById('results');
+        list.innerHTML = tracks.map((s, i) => `
+            <div class="track" onclick="playSong(${i})">
+                <img src="${s.thumbnail}">
+                <div class="track-meta"><div>${s.title}</div><div>${s.artist}</div></div>
+            </div>
+        `).join('');
+    }
+
+    // Prepare UI without playing (for recovery)
+    function preparePlayer(index) {
+        const song = currentPlaylist[index];
+        document.getElementById('player-bar').classList.remove('hidden');
+        document.getElementById('pTitle').innerText = song.title;
+        document.getElementById('pArtist').innerText = song.artist;
+        document.getElementById('pThumb').src = song.thumbnail;
+    }
+
+    function playSong(index) {
+        currentIndex = index;
+        localStorage.setItem('vofo_index', index);
+        preparePlayer(index);
+        player.loadVideoById(currentPlaylist[index].id);
+        updateMediaSession(currentPlaylist[index]);
+    }
+
+    function togglePlay() {
+        if(player.getPlayerState() === 1) player.pauseVideo();
+        else player.playVideo();
+    }
+
+    function skipNext() {
+        if(currentIndex < currentPlaylist.length - 1) playSong(currentIndex + 1);
+    }
+
+    function updateProgressBar() {
+        if(player && player.getDuration && player.getPlayerState() === 1) {
+            const perc = (player.getCurrentTime() / player.getDuration()) * 100;
+            document.getElementById('progress-inner').style.width = perc + "%";
         }
-    </script>
+    }
+
+    function updateMediaSession(song) {
+        if ('mediaSession' in navigator) {
+            navigator.mediaSession.metadata = new MediaMetadata({
+                title: song.title, artist: song.artist,
+                artwork: [{ src: song.thumbnail, sizes: '512x512', type: 'image/jpeg' }]
+            });
+            navigator.mediaSession.setActionHandler('play', () => player.playVideo());
+            navigator.mediaSession.setActionHandler('pause', () => player.pauseVideo());
+            navigator.mediaSession.setActionHandler('nexttrack', skipNext);
+        }
+    }
+</script>
 </body>
 </html>
